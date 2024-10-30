@@ -1,3 +1,4 @@
+import cors from '@fastify/cors'
 import fastify from 'fastify'
 import piscinaPlugin from 'fastify-piscina'
 import cachePlugin from './plugins/cache.mjs'
@@ -8,6 +9,8 @@ import routes from './routes/index.mjs'
 const app = fastify({
   logger: true,
 })
+
+app.register(cors)
 
 app.register(queuePlugin, {
   concurrency: 1,
@@ -25,10 +28,17 @@ app.register(piscinaPlugin, {
 })
 
 app.register(routes, {
-  prefix: '/api',
+  prefix: '/',
 })
 
-app.listen({ port: 3030, host: '0.0.0.0' }, function (err, address) {
+app.get('/status', async (_, reply) => {
+  reply.send({
+    status: 'ok',
+    now: Date.now(),
+  })
+})
+
+app.listen({ port: 8970, host: '0.0.0.0' }, function (err, address) {
   if (err) {
     app.log.error(err)
     process.exit(1)
