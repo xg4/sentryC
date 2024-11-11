@@ -4,7 +4,7 @@ import { fetchTargetIps } from '../services/ip.mjs'
 import { calculateAverage, calculateStd } from '../utils/math.mjs'
 
 export default function routes(app, _, done) {
-  app.post('/task', async (_, reply) => {
+  app.post('/task', async (req, reply) => {
     const values = [...app.cache.values()]
     const current = values.find(i => i.value !== 1)
     if (current) {
@@ -27,6 +27,11 @@ export default function routes(app, _, done) {
           return data
         }),
       )
+      const list = data.filter(i => i.latency > 0)
+      req.log.info(`task-${taskId} ${list.length}/${data.length}`)
+      if (!list.length) {
+        return
+      }
       await app.prisma.latencyRecord.createMany({
         data,
       })

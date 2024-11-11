@@ -12,6 +12,7 @@
   },
   "license": "MIT",
   "author": "xg4 <xingor4@gmail.com>",
+  "type": "module",
   "scripts": {
     "dev": "nodemon src/app.mjs",
     "start": "prisma migrate deploy && prisma generate && node src/app.mjs"
