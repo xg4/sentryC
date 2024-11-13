@@ -29,7 +29,8 @@
     "nanoid": "5.0.8",
     "p-queue": "8.0.1",
     "ping": "0.4.4",
-    "prisma": "5.22.0"
+    "prisma": "5.22.0",
+    "zod": "3.23.8"
   },
   "devDependencies": {
     "nodemon": "3.1.7",

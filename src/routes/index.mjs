@@ -1,8 +1,16 @@
-import { compact, groupBy, last, map } from 'lodash-es'
+import { isEmpty } from 'lodash-es'
 import { nanoid } from 'nanoid'
-import { fetchTargetIps } from '../services/ip.mjs'
-import { calculateAverage, calculateStd } from '../utils/math.mjs'
+import { z } from 'zod'
+import { getAllIps } from '../services/ip.mjs'
+import { filterRecords, getRecordsByIp } from '../services/record.mjs'
 
+/**
+ * 定义应用程序的路由
+ * @param {import('../app.mjs').Application} app - 应用程序对象
+ * @param {Object} _ - 未使用的参数
+ * @param {Function} done - 路由设置完成后的回调函数
+ * @returns {void}
+ */
 export default function routes(app, _, done) {
   app.post('/task', async (req, reply) => {
     const values = [...app.cache.values()]
@@ -16,24 +24,32 @@ export default function routes(app, _, done) {
     app.cache.set(taskId, { label: taskId, value: 0, createdAt: new Date() })
 
     app.queue.add(async () => {
-      const ips = await fetchTargetIps()
+      const ips = await getAllIps(app.prisma)
       let index = 0
-      const data = await Promise.all(
+      const records = await Promise.all(
         ips.map(async ip => {
-          const data = await app.runTask(ip)
+          const latency = await app.runTask(ip.address)
           const saved = app.cache.get(taskId)
           saved.value = ++index / ips.length
           app.cache.set(taskId, saved)
-          return data
+          return {
+            ...ip,
+            latency,
+          }
         }),
       )
-      const list = data.filter(i => i.latency > 0)
-      req.log.info(`task-${taskId} ${list.length}/${data.length}`)
-      if (!list.length) {
+      const list = records.filter(i => i.latency > 0)
+      if (isEmpty(list)) {
+        req.log.error(`task-${taskId} failed`)
         return
       }
+      req.log.info(`task-${taskId} ${list.length}/${records.length}`)
+
       await app.prisma.latencyRecord.createMany({
-        data,
+        data: records.map(i => ({
+          ipId: i.id,
+          latency: i.latency,
+        })),
       })
     })
 
@@ -50,49 +66,26 @@ export default function routes(app, _, done) {
     reply.send([...app.cache.values()])
   })
 
-  app.get('/data', async (request, reply) => {
-    const { gt, lt } = request.query
-    const records = await app.prisma.latencyRecord.findMany({
-      where: {
-        createdAt: {
-          gt,
-          lt,
-        },
-      },
-    })
+  const queryRecordSchema = z.object({
+    gt: z.string().datetime(),
+    lt: z.string().datetime(),
+  })
 
-    const grouped = groupBy(records, 'ip')
+  app.get('/record', async (request, reply) => {
+    const query = queryRecordSchema.parse(request.query)
+    const records = await getRecordsByIp(app.prisma, query)
+    reply.send(filterRecords(records))
+  })
 
-    const data = map(grouped, (items, label) => {
-      const values = map(items, 'latency')
-      if (values.every(i => i < 0)) {
-        return null
-      }
-      const times = values.filter(i => i > 0)
-      if (times.length < 1) {
-        return null
-      }
-      const packetLossRate = (values.length - times.length) / values.length
-      if (packetLossRate > 0.5) {
-        return null
-      }
-      const average = calculateAverage(times)
+  const paramRecordSchema = z.object({
+    ip: z.string().ip(),
+  })
 
-      if (average > 200) {
-        return null
-      }
-      const std = calculateStd(times, average)
-      return {
-        label,
-        values,
-        packetLossRate,
-        average: average.toFixed(1),
-        std: std.toFixed(1),
-        createdAt: last(items).createdAt,
-      }
-    })
-
-    reply.send(compact(data))
+  app.get('/record/:ip', async (request, reply) => {
+    const query = queryRecordSchema.parse(request.query)
+    const params = paramRecordSchema.parse(request.params)
+    const records = await getRecordsByIp(app.prisma, { ...query, ...params })
+    reply.send(records)
   })
 
   done()

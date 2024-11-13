@@ -4,12 +4,9 @@ export default async function (ip) {
   try {
     const response = await ping.promise.probe(ip)
     if (response.alive) {
-      return { ip, latency: response.time }
+      return response.time
     }
   } catch {}
 
-  return {
-    ip,
-    latency: -1,
-  }
+  return -1
 }

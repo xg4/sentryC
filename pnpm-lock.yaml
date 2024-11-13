@@ -44,6 +44,9 @@ importers:
       prisma:
         specifier: 5.22.0
         version: 5.22.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       nodemon:
         specifier: 3.1.7
@@ -515,6 +518,9 @@ packages:
   undefsafe@2.0.5:
     resolution: {integrity: sha512-WxONCrssBM8TSPRqN5EmsjVrsv4A8X12J4ArBiiayv3DyyG3ZlIg6yysuuSYdZsVz3TKcTg2fd//Ujd4CHV1iA==}
 
+  zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+
 snapshots:
 
   '@fastify/ajv-compiler@4.0.1':
@@ -941,3 +947,5 @@ snapshots:
   touch@3.1.1: {}
 
   undefsafe@2.0.5: {}
+
+  zod@3.23.8: {}
