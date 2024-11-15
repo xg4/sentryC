@@ -17,6 +17,12 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN \
+  if [ -f yarn.lock ]; then yarn run ui:build; \
+  elif [ -f package-lock.json ]; then npm run ui:build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run ui:build; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
 FROM base AS runner
 WORKDIR /app

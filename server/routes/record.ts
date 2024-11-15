@@ -3,14 +3,14 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { filterRecords, getRecordsByIp } from '../services/record.js'
 
-export const recordRoute = new Hono()
+export const recordRoute = new Hono().basePath('/record')
 
 export const queryRecordSchema = z.object({
   gt: z.string().datetime(),
   lt: z.string().datetime(),
 })
 
-recordRoute
+const record = recordRoute
   .get('/', zValidator('query', queryRecordSchema), async c => {
     const query = c.req.valid('query')
     const records = await getRecordsByIp(query)
@@ -32,3 +32,5 @@ recordRoute
       return c.json(records)
     },
   )
+
+export type RecordRouteType = typeof record

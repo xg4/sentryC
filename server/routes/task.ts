@@ -9,9 +9,9 @@ import { queue } from '../plugins/queue.js'
 import { getAllIps } from '../services/task.js'
 import { createTask } from '../utils/task.js'
 
-export const taskRoute = new Hono()
+export const taskRoute = new Hono().basePath('/task')
 
-taskRoute
+const task = taskRoute
   .get('/', async c => {
     return c.json([...cache.values()])
   })
@@ -74,3 +74,5 @@ taskRoute
 
     return c.json(t.label, 201)
   })
+
+export type TaskRouteType = typeof task

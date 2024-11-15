@@ -1,12 +1,18 @@
 import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
-import { cors } from 'hono/cors'
+import { logger } from 'hono/logger'
 import { recordRoute } from './routes/record.js'
 import { taskRoute } from './routes/task.js'
 
 const app = new Hono()
 
-app.use('*', cors())
+app.use(logger()).use(
+  '/*',
+  serveStatic({
+    rewriteRequestPath: path => `./dist${path}`,
+  }),
+)
 
 app.get('/status', async c => {
   return c.json({
@@ -15,10 +21,9 @@ app.get('/status', async c => {
   })
 })
 
-app.route('/task', taskRoute)
-app.route('/record', recordRoute)
+app.route('/api', taskRoute).route('/api', recordRoute)
 
-const port = 8907
+const port = 8970
 console.log(`Server is running on http://localhost:${port}`)
 
 serve({
