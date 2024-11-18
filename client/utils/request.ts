@@ -1,7 +1,4 @@
 import { hc } from 'hono/client'
-import type { RecordRouteType } from '../../server/routes/record'
-import type { TaskRouteType } from '../../server/routes/task'
+import type { ApiRoutes } from '../../server/app'
 
-export const recordClient = hc<RecordRouteType>('/api')
-
-export const taskClient = hc<TaskRouteType>('/api')
+export const client = hc<ApiRoutes>('/')

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { recordClient } from '../utils/request'
+import { client } from '../utils/request'
 
 export default function useRecord(dateRange: string[]) {
   const [gt, lt] = dateRange
@@ -7,7 +7,7 @@ export default function useRecord(dateRange: string[]) {
   return useQuery({
     queryKey: ['records', gt, lt],
     queryFn: async () => {
-      const res = await recordClient.record.$get({
+      const res = await client.api.record.$get({
         query: {
           gt,
           lt,
@@ -24,7 +24,7 @@ export function useRecords(dateRange: string[], ip: string) {
   return useQuery({
     queryKey: ['records', gt, lt, ip],
     queryFn: async () => {
-      const res = await recordClient.record[':ip'].$get({
+      const res = await client.api.record[':ip'].$get({
         param: {
           ip,
         },

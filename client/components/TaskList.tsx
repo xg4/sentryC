@@ -5,12 +5,12 @@ import dayjs from 'dayjs'
 import { orderBy } from 'lodash-es'
 import { useCallback, useEffect, useState } from 'react'
 import { today } from '../constants'
-import { taskClient } from '../utils/request'
+import { client } from '../utils/request'
 
 export default function TaskList({ className }: { className?: string }) {
   const { mutate: start, isPending } = useMutation({
     mutationFn: async () => {
-      const res = await taskClient.task.$post()
+      const res = await client.api.task.$post()
       return res.json()
     },
     onSuccess() {
@@ -21,7 +21,7 @@ export default function TaskList({ className }: { className?: string }) {
   const { data, refetch, isLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
-      const res = await taskClient.task.$get()
+      const res = await client.api.task.$get()
       return res.json()
     },
     select: data => orderBy(data, [item => item.createdAt], ['desc']),
@@ -55,7 +55,7 @@ function TaskProgress({ label, value, createdAt }: any) {
   const { data } = useQuery({
     queryKey: ['task', label],
     queryFn: async () => {
-      const res = await taskClient.task[':id'].$get({
+      const res = await client.api.task[':id'].$get({
         param: {
           id: label,
         },

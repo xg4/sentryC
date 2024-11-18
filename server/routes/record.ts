@@ -1,16 +1,14 @@
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { filterRecords, getRecordsByIp } from '../services/record.js'
-
-export const recordRoute = new Hono().basePath('/record')
+import { filterRecords, getRecordsByIp } from '../services/record'
 
 export const queryRecordSchema = z.object({
   gt: z.string().datetime(),
   lt: z.string().datetime(),
 })
 
-const record = recordRoute
+export const recordRoute = new Hono()
   .get('/', zValidator('query', queryRecordSchema), async c => {
     const query = c.req.valid('query')
     const records = await getRecordsByIp(query)
@@ -32,5 +30,3 @@ const record = recordRoute
       return c.json(records)
     },
   )
-
-export type RecordRouteType = typeof record

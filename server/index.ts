@@ -1,32 +1,18 @@
 import { serve } from '@hono/node-server'
-import { serveStatic } from '@hono/node-server/serve-static'
-import { Hono } from 'hono'
-import { logger } from 'hono/logger'
-import { recordRoute } from './routes/record.js'
-import { taskRoute } from './routes/task.js'
+import { z } from 'zod'
+import app from './app'
 
-const app = new Hono()
-
-app.use(logger()).use(
-  '/*',
-  serveStatic({
-    rewriteRequestPath: path => `./dist${path}`,
-  }),
-)
-
-app.get('/status', async c => {
-  return c.json({
-    status: 'ok',
-    now: Date.now(),
-  })
+const ServeEnv = z.object({
+  PORT: z.coerce.number().int().default(8970),
+  HOSTNAME: z.string().default('localhost'),
 })
 
-app.route('/api', taskRoute).route('/api', recordRoute)
-
-const port = 8970
-console.log(`Server is running on http://localhost:${port}`)
+const ProcessEnv = ServeEnv.parse(process.env)
 
 serve({
   fetch: app.fetch,
-  port,
+  port: ProcessEnv.PORT,
+  hostname: ProcessEnv.HOSTNAME,
 })
+
+console.log(`🚀 ~ Server is running on http://${ProcessEnv.HOSTNAME}:${ProcessEnv.PORT}`)

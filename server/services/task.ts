@@ -1,6 +1,6 @@
 import { isEmpty } from 'lodash-es'
-import { prisma } from '../plugins/prisma.js'
-import { fetchTargetIps } from '../utils/address.js'
+import { prisma } from '../plugins/prisma'
+import { fetchTargetIps } from '../utils/address'
 
 export async function getAllIps() {
   const ips = await prisma.ip.findMany()

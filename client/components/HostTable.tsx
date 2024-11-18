@@ -1,12 +1,13 @@
 import { Table, type TableColumnsType } from 'antd'
 import dayjs from 'dayjs'
+import type { RecordResult } from '../../server/types'
 import { today } from '../constants'
 import useRecord from '../hooks/useRecord'
 
 export default function HostTable({ dateRange = today, className }: { dateRange?: string[]; className?: string }) {
   const { data, isLoading } = useRecord(dateRange)
 
-  const columns: TableColumnsType<any> = [
+  const columns: TableColumnsType<RecordResult> = [
     {
       title: '目标服务器',
       dataIndex: 'label',

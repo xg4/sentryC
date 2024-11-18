@@ -2,16 +2,14 @@ import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { isEmpty } from 'lodash-es'
 import { z } from 'zod'
-import { cache } from '../plugins/cache.js'
-import { worker } from '../plugins/piscina.js'
-import { prisma } from '../plugins/prisma.js'
-import { queue } from '../plugins/queue.js'
-import { getAllIps } from '../services/task.js'
-import { createTask } from '../utils/task.js'
+import { cache } from '../plugins/cache'
+import { worker } from '../plugins/piscina'
+import { prisma } from '../plugins/prisma'
+import { queue } from '../plugins/queue'
+import { getAllIps } from '../services/task'
+import { createTask } from '../utils/task'
 
-export const taskRoute = new Hono().basePath('/task')
-
-const task = taskRoute
+export const taskRoute = new Hono()
   .get('/', async c => {
     return c.json([...cache.values()])
   })
@@ -74,5 +72,3 @@ const task = taskRoute
 
     return c.json(t.label, 201)
   })
-
-export type TaskRouteType = typeof task
