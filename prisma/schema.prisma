@@ -3,25 +3,27 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model Ip {
   id             Int             @id @default(autoincrement())
   address        String          @unique
+  createdAt      DateTime        @default(now()) @map("created_at")
   latencyRecords LatencyRecord[]
 
   @@map("ips")
 }
 
 model LatencyRecord {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   latency   Float
   createdAt DateTime @default(now()) @map("created_at")
   ip        Ip       @relation(fields: [ipId], references: [id])
   ipId      Int      @map("ip_id")
 
   @@index([ipId, createdAt])
+  @@index([createdAt])
   @@map("latency_records")
 }

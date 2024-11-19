@@ -35,4 +35,8 @@ EXPOSE 8970
 
 ENV PORT 8970
 
-CMD HOSTNAME="0.0.0.0" npm run start
+ENV DATABASE_URL /app/db.sqlite3
+
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["npm", "start"]
