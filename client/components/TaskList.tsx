@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, List, Progress } from 'antd'
-import clsx from 'clsx'
 import dayjs from 'dayjs'
-import { orderBy } from 'lodash-es'
-import { useCallback, useEffect, useState } from 'react'
+import { last, orderBy } from 'lodash-es'
+import { useCallback, useEffect, useMemo } from 'react'
 import { today } from '../constants'
+import { useSSE } from '../hooks/useSSE'
 import { client } from '../utils/request'
 
 export default function TaskList({ className }: { className?: string }) {
@@ -44,59 +44,47 @@ export default function TaskList({ className }: { className?: string }) {
       itemLayout="horizontal"
       dataSource={data}
       loading={isLoading}
-      renderItem={item => <TaskProgress key={clsx([item.label, item.createdAt, item.value.toFixed()])} {...item} />}
+      renderItem={item => <TaskProgress key={item.label} {...item} />}
     />
   )
 }
 
-function TaskProgress({ label, value, createdAt }: any) {
+function TaskProgress({ label, createdAt, value }: { label: string; createdAt: string; value: number }) {
+  const { messages } = useSSE<number>('/api/task/' + label)
+
+  const lastValue = useMemo(() => last(messages) ?? value, [messages, value])
+
   const queryClient = useQueryClient()
-  const [enabled, setEnabled] = useState(value !== 1)
-  const { data } = useQuery({
-    queryKey: ['task', label],
-    queryFn: async () => {
-      const res = await client.api.task[':id'].$get({
-        param: {
-          id: label,
-        },
-      })
-      return res.json()
-    },
-    refetchInterval: 5000,
-    enabled,
-    initialData: value,
-  })
 
   useEffect(() => {
-    if (value !== 1 && data === 1) {
+    if (value !== 1 && lastValue === 1) {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
-      queryClient.invalidateQueries({ queryKey: ['data', today] })
-      setEnabled(false)
+      queryClient.invalidateQueries({ queryKey: ['records', today] })
     }
-  }, [data, queryClient, value])
+  }, [lastValue, value])
 
   const renderContent = useCallback(() => {
-    const current = dayjs(createdAt)
+    const time = dayjs(createdAt)
     {
-      if (data === 0) {
+      if (lastValue === 0) {
         return <span className="text-xs">等待中</span>
       }
-      if (data === 1) {
+      if (lastValue === 1) {
         return (
           <span className="text-xs text-green-600">
-            已完结 ({current.isToday() ? current.format('HH:mm') : current.fromNow()})
+            已完结 ({time.isToday() ? time.format('HH:mm') : time.fromNow()})
           </span>
         )
       }
 
       return <span className="text-xs text-blue-500">执行中</span>
     }
-  }, [createdAt, data])
+  }, [createdAt, lastValue])
   return (
     <List.Item>
       <List.Item.Meta title={label} description={renderContent()} />
       <div className="w-40">
-        <Progress showInfo={false} percent={data * 100} />
+        <Progress showInfo={false} percent={lastValue * 100} />
       </div>
     </List.Item>
   )

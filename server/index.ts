@@ -1,13 +1,6 @@
 import { serve } from '@hono/node-server'
-import { z } from 'zod'
 import app from './app'
-
-const ServeEnv = z.object({
-  PORT: z.coerce.number().int().default(8970),
-  HOSTNAME: z.string().default('localhost'),
-})
-
-const ProcessEnv = ServeEnv.parse(process.env)
+import { ProcessEnv } from './env'
 
 serve({
   fetch: app.fetch,

@@ -1,5 +1,6 @@
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
+import { streamSSE } from 'hono/streaming'
 import { isEmpty } from 'lodash-es'
 import { z } from 'zod'
 import { cache } from '../plugins/cache'
@@ -22,12 +23,28 @@ export const taskRoute = new Hono()
       }),
     ),
     async c => {
-      const { id } = c.req.valid('param')
-      const progress = cache.get(id)
-      if (!progress) {
-        return c.json(null, 404)
-      }
-      return c.json(progress.value)
+      return streamSSE(c, async stream => {
+        const { id } = c.req.valid('param')
+        stream.onAbort(() => {
+          stream.close()
+        })
+        while (!(stream.aborted || stream.closed)) {
+          const progress = cache.get(id)
+          if (!progress) {
+            return stream.close()
+          }
+
+          await stream.writeSSE({
+            data: JSON.stringify(progress.value),
+          })
+
+          if (progress.value === 1) {
+            return stream.close()
+          }
+
+          await stream.sleep(5_000)
+        }
+      })
     },
   )
   .post('/', async c => {

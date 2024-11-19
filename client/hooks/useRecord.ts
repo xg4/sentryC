@@ -5,7 +5,7 @@ export default function useRecord(dateRange: string[]) {
   const [gt, lt] = dateRange
 
   return useQuery({
-    queryKey: ['records', gt, lt],
+    queryKey: ['records', dateRange],
     queryFn: async () => {
       const res = await client.api.record.$get({
         query: {
@@ -22,7 +22,7 @@ export function useRecords(dateRange: string[], ip: string) {
   const [gt, lt] = dateRange
 
   return useQuery({
-    queryKey: ['records', gt, lt, ip],
+    queryKey: ['records', dateRange, ip],
     queryFn: async () => {
       const res = await client.api.record[':ip'].$get({
         param: {
