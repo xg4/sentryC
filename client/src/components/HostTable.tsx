@@ -1,6 +1,6 @@
 import { Table, type TableColumnsType } from 'antd'
 import dayjs from 'dayjs'
-import type { RecordResult } from '../../server/types'
+import type { RecordResult } from '../../../server/types'
 import { today } from '../constants'
 import useRecord from '../hooks/useRecord'
 

@@ -1,42 +1,37 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+COPY . .
+RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
-
+WORKDIR /app/client
+RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN \
-  if [ -f yarn.lock ]; then yarn run ui:build; \
-  elif [ -f package-lock.json ]; then npm run ui:build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run ui:build; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+COPY --from=deps /app .
+
+WORKDIR /app/client
+RUN npm run build
+
 
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
-COPY --from=builder /app ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/client/dist ./client/dist
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 8970
 
-ENV PORT 8970
-
-ENV DATABASE_URL /app/db.sqlite3
-
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=8970
+ENV DATABASE_URL=file:/app/db.sqlite3
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["npm", "start"]

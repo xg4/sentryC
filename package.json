@@ -16,33 +16,20 @@
   "scripts": {
     "dev": "tsx watch server/index.ts",
     "start": "prisma migrate deploy && prisma generate && tsx server/index.ts",
-    "ui:build": "vite build",
-    "ui:dev": "vite",
-    "ui:preview": "vite preview"
+    "build": "cd client && npm run build"
   },
   "dependencies": {
     "@hono/node-server": "1.13.7",
     "@hono/zod-validator": "0.4.1",
-    "@hookform/resolvers": "3.9.1",
-    "@microsoft/fetch-event-source": "2.0.1",
     "@prisma/client": "5.22.0",
-    "@tanstack/react-query": "5.60.5",
-    "@uidotdev/usehooks": "2.4.1",
-    "antd": "5.22.1",
-    "clsx": "2.1.1",
-    "dayjs": "1.11.13",
     "hono": "4.6.10",
     "ip": "2.0.1",
-    "ky": "1.7.2",
     "lodash-es": "4.17.21",
     "lru-cache": "11.0.2",
     "nanoid": "5.0.8",
     "p-queue": "8.0.1",
     "ping": "0.4.4",
     "piscina": "4.7.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-hook-form": "7.53.2",
     "zod": "3.23.8"
   },
   "devDependencies": {
@@ -50,17 +37,10 @@
     "@types/lodash-es": "4.17.12",
     "@types/node": "22.9.0",
     "@types/ping": "0.4.4",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
-    "@vitejs/plugin-react-swc": "3.7.1",
-    "autoprefixer": "10.4.20",
-    "postcss": "8.4.49",
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "0.6.8",
     "prisma": "5.22.0",
-    "tailwindcss": "3.4.15",
     "tsx": "4.19.2",
-    "typescript": "5.6.3",
-    "vite": "5.4.11"
+    "typescript": "5.6.3"
   }
 }

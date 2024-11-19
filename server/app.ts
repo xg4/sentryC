@@ -8,8 +8,8 @@ const app = new Hono()
 
 const apiRoutes = app.basePath('/api').use('*', logger()).route('/task', taskRoute).route('/record', recordRoute)
 
-app.use('*', serveStatic({ root: './dist' }))
-app.use('*', serveStatic({ path: './dist/index.html' }))
+app.use('*', serveStatic({ root: './client/dist' }))
+app.use('*', serveStatic({ path: './client/dist/index.html' }))
 
 export default app
 
