@@ -29,7 +29,7 @@ export default function TopList({
             title={<Typography.Paragraph copyable={{ text: item.label }}>{item.label}</Typography.Paragraph>}
           />
           <ul className="text-xs text-gray-700">
-            <li>延迟：{item.average}ms</li>
+            <li>延迟：{item.average.toFixed(1)}ms</li>
             <li>丢包：{(item.packetLossRate * 100).toFixed(1)}%</li>
           </ul>
         </List.Item>

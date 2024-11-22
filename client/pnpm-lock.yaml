@@ -12,14 +12,14 @@ importers:
         specifier: 2.0.1
         version: 2.0.1
       '@tanstack/react-query':
-        specifier: 5.60.5
-        version: 5.60.5(react@18.3.1)
+        specifier: 5.61.0
+        version: 5.61.0(react@18.3.1)
       '@uidotdev/usehooks':
         specifier: 2.4.1
         version: 2.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       antd:
-        specifier: 5.22.1
-        version: 5.22.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 5.22.2
+        version: 5.22.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -586,14 +586,14 @@ packages:
   '@swc/counter@0.1.3':
     resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
 
-  '@swc/types@0.1.15':
-    resolution: {integrity: sha512-XKaZ+dzDIQ9Ot9o89oJQ/aluI17+VvUnIpYJTcZtvv1iYX6MzHh3Ik2CSR7MdPKpPwfZXHBeCingb2b4PoDVdw==}
+  '@swc/types@0.1.17':
+    resolution: {integrity: sha512-V5gRru+aD8YVyCOMAjMpWR1Ui577DD5KSJsHP8RAxopAH22jFz6GZd/qxqjO6MJHQhcsjvjOFXyDhyLQUnMveQ==}
 
-  '@tanstack/query-core@5.60.5':
-    resolution: {integrity: sha512-jiS1aC3XI3BJp83ZiTuDLerTmn9P3U95r6p+6/SNauLJaYxfIC4dMuWygwnBHIZxjn2zJqEpj3nysmPieoxfPQ==}
+  '@tanstack/query-core@5.60.6':
+    resolution: {integrity: sha512-tI+k0KyCo1EBJ54vxK1kY24LWj673ujTydCZmzEZKAew4NqZzTaVQJEuaG1qKj2M03kUHN46rchLRd+TxVq/zQ==}
 
-  '@tanstack/react-query@5.60.5':
-    resolution: {integrity: sha512-M77bOsPwj1wYE56gk7iJvxGAr4IC12NWdIDhT+Eo8ldkWRHMvIR8I/rufIvT1OXoV/bl7EECwuRuMlxxWtvW2Q==}
+  '@tanstack/react-query@5.61.0':
+    resolution: {integrity: sha512-SBzV27XAeCRBOQ8QcC94w2H1Md0+LI0gTWwc3qRJoaGuewKn5FNW4LSqwPFJZVEItfhMfGT7RpZuSFXjTi12pQ==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -721,8 +721,8 @@ packages:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
     engines: {node: '>=12'}
 
-  antd@5.22.1:
-    resolution: {integrity: sha512-itq8AZwe3IfawZH6SMM5XdbTz1xXGTTqA7sNN0qpEdxcoTpD5nRsCBAMIy+PhwcWFobgFc6ZlF8d7f8eicn0SQ==}
+  antd@5.22.2:
+    resolution: {integrity: sha512-vihhiJbm9VG3d6boUeD1q2MXMax+qBrXhgqCEC+45v8iGUF6m4Ct+lFiCW4oWaN3EABOsbVA6Svy3Rj/QkQFKw==}
     peerDependencies:
       react: '>=16.9.0'
       react-dom: '>=16.9.0'
@@ -777,8 +777,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001680:
-    resolution: {integrity: sha512-rPQy70G6AGUMnbwS1z6Xg+RkHYPAi18ihs47GH0jcxIG7wArmPgY3XbS2sRdBbxJljp3thdT8BIqv9ccCypiPA==}
+  caniuse-lite@1.0.30001683:
+    resolution: {integrity: sha512-iqmNnThZ0n70mNwvxpEC2nBJ037ZHZUoBI5Gorh1Mw6IlEAZujEoU1tXA628iZfzm7R9FvFzxbfdgml82a3k8Q==}
 
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
@@ -851,8 +851,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  electron-to-chromium@1.5.63:
-    resolution: {integrity: sha512-ddeXKuY9BHo/mw145axlyWjlJ1UBt4WK3AlvkT7W2AbqfRQoacVoRUCF6wL3uIx/8wT9oLKXzI+rFqHHscByaA==}
+  electron-to-chromium@1.5.64:
+    resolution: {integrity: sha512-IXEuxU+5ClW2IGEYFC2T7szbyVgehupCWQe5GNh+H065CD6U6IFN0s4KeAMFGNmQolRU4IV7zGBWSYMmZ8uuqQ==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -1456,8 +1456,8 @@ packages:
       react: '>=16.9.0'
       react-dom: '>=16.9.0'
 
-  rc-tree-select@5.24.4:
-    resolution: {integrity: sha512-MzljkSkk7weKOcE853UtYlXB6uyUEzcEQhhpaCwE6jQPbmBUgGiRURuKWpYUnM/dXrwTTlCK969M6Pgjj35MLA==}
+  rc-tree-select@5.24.5:
+    resolution: {integrity: sha512-PnyR8LZJWaiEFw0SHRqo4MNQWyyZsyMs8eNmo68uXZWjxc7QqeWcjPPoONN0rc90c3HZqGF9z+Roz+GLzY5GXA==}
     peerDependencies:
       react: '*'
       react-dom: '*'
@@ -1710,8 +1710,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  yaml@2.6.0:
-    resolution: {integrity: sha512-a6ae//JvKDEra2kdi1qzCyrJW/WZCgFi8ydDV+eXExl95t+5R+ijnqHJbz9tmMh8FUjx3iv2fCQ4dclAQlO2UQ==}
+  yaml@2.6.1:
+    resolution: {integrity: sha512-7r0XPzioN/Q9kXBro/XPnA6kznR73DHq+GXh5ON7ZozRO6aMjbmiBuKste2wslTFkC5d1dw0GooOCepZXJ2SAg==}
     engines: {node: '>= 14'}
     hasBin: true
 
@@ -2102,7 +2102,7 @@ snapshots:
   '@swc/core@1.9.2':
     dependencies:
       '@swc/counter': 0.1.3
-      '@swc/types': 0.1.15
+      '@swc/types': 0.1.17
     optionalDependencies:
       '@swc/core-darwin-arm64': 1.9.2
       '@swc/core-darwin-x64': 1.9.2
@@ -2117,15 +2117,15 @@ snapshots:
 
   '@swc/counter@0.1.3': {}
 
-  '@swc/types@0.1.15':
+  '@swc/types@0.1.17':
     dependencies:
       '@swc/counter': 0.1.3
 
-  '@tanstack/query-core@5.60.5': {}
+  '@tanstack/query-core@5.60.6': {}
 
-  '@tanstack/react-query@5.60.5(react@18.3.1)':
+  '@tanstack/react-query@5.61.0(react@18.3.1)':
     dependencies:
-      '@tanstack/query-core': 5.60.5
+      '@tanstack/query-core': 5.60.6
       react: 18.3.1
 
   '@types/estree@1.0.6': {}
@@ -2266,7 +2266,7 @@ snapshots:
 
   ansi-styles@6.2.1: {}
 
-  antd@5.22.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  antd@5.22.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@ant-design/colors': 7.1.0
       '@ant-design/cssinjs': 1.22.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2312,7 +2312,7 @@ snapshots:
       rc-textarea: 1.8.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-tooltip: 6.2.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-tree: 5.10.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      rc-tree-select: 5.24.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-tree-select: 5.24.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-upload: 4.8.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
@@ -2338,7 +2338,7 @@ snapshots:
   autoprefixer@10.4.20(postcss@8.4.49):
     dependencies:
       browserslist: 4.24.2
-      caniuse-lite: 1.0.30001680
+      caniuse-lite: 1.0.30001683
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -2364,8 +2364,8 @@ snapshots:
 
   browserslist@4.24.2:
     dependencies:
-      caniuse-lite: 1.0.30001680
-      electron-to-chromium: 1.5.63
+      caniuse-lite: 1.0.30001683
+      electron-to-chromium: 1.5.64
       node-releases: 2.0.18
       update-browserslist-db: 1.1.1(browserslist@4.24.2)
 
@@ -2373,7 +2373,7 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001680: {}
+  caniuse-lite@1.0.30001683: {}
 
   chalk@4.1.2:
     dependencies:
@@ -2436,7 +2436,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  electron-to-chromium@1.5.63: {}
+  electron-to-chromium@1.5.64: {}
 
   emoji-regex@8.0.0: {}
 
@@ -2805,7 +2805,7 @@ snapshots:
   postcss-load-config@4.0.2(postcss@8.4.49):
     dependencies:
       lilconfig: 3.1.2
-      yaml: 2.6.0
+      yaml: 2.6.1
     optionalDependencies:
       postcss: 8.4.49
 
@@ -3107,7 +3107,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  rc-tree-select@5.24.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  rc-tree-select@5.24.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.26.0
       classnames: 2.5.1
@@ -3379,6 +3379,6 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.0
 
-  yaml@2.6.0: {}
+  yaml@2.6.1: {}
 
   yocto-queue@0.1.0: {}

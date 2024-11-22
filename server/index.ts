@@ -8,4 +8,4 @@ serve({
   hostname: ProcessEnv.HOSTNAME,
 })
 
-console.log(`🚀 ~ Server is running on http://${ProcessEnv.HOSTNAME}:${ProcessEnv.PORT}`)
+console.log(`\n\n🚀 ~ Server is running on http://${ProcessEnv.HOSTNAME}:${ProcessEnv.PORT}`)

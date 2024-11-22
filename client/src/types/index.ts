@@ -2,8 +2,8 @@ export type RecordResult = {
   label: string
   values: number[]
   packetLossRate: number
-  average: string
-  std: string
+  average: number
+  std: number
   createdAt: string | undefined
   minValue: number
   maxValue: number

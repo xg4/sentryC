@@ -1,8 +1,17 @@
 import { Table, type TableColumnsType } from 'antd'
 import dayjs from 'dayjs'
-import type { RecordResult } from '../../../server/types'
+import { isNumber } from 'lodash-es'
 import { today } from '../constants'
 import useRecord from '../hooks/useRecord'
+import { RecordResult } from '../types'
+
+function diff(a: number, b: number) {
+  return a - b
+}
+
+function render(v?: number) {
+  return isNumber(v) ? v.toFixed(1) : v
+}
 
 export default function HostTable({ dateRange = today, className }: { dateRange?: string[]; className?: string }) {
   const { data, isLoading } = useRecord(dateRange)
@@ -17,18 +26,20 @@ export default function HostTable({ dateRange = today, className }: { dateRange?
     {
       title: '平均延迟',
       dataIndex: 'average',
+      render,
       defaultSortOrder: 'ascend',
       sorter: {
-        compare: (a, b) => parseFloat(a.average) - parseFloat(b.average),
+        compare: (a, b) => diff(a.average, b.average),
         multiple: 2,
       },
     },
     {
       title: '标准差 σ',
       dataIndex: 'std',
+      render,
       defaultSortOrder: 'ascend',
       sorter: {
-        compare: (a, b) => parseFloat(a.std) - parseFloat(b.std),
+        compare: (a, b) => diff(a.std, b.std),
         multiple: 1,
       },
     },
@@ -40,23 +51,25 @@ export default function HostTable({ dateRange = today, className }: { dateRange?
       },
       defaultSortOrder: 'ascend',
       sorter: {
-        compare: (a, b) => a.packetLossRate - b.packetLossRate,
+        compare: (a, b) => diff(a.packetLossRate, b.packetLossRate),
         multiple: 3,
       },
     },
     {
       title: '最小延迟',
       dataIndex: 'minValue',
+      render,
       sorter: {
-        compare: (a, b) => a.minValue - b.minValue,
+        compare: (a, b) => diff(a.minValue, b.minValue),
         multiple: 1,
       },
     },
     {
       title: '最大延迟',
       dataIndex: 'maxValue',
+      render,
       sorter: {
-        compare: (a, b) => a.maxValue - b.maxValue,
+        compare: (a, b) => diff(a.maxValue, b.maxValue),
         multiple: 1,
       },
     },
@@ -65,7 +78,7 @@ export default function HostTable({ dateRange = today, className }: { dateRange?
       width: 300,
       dataIndex: 'values',
       render(value: number[]) {
-        return value.join(', ')
+        return value.map(i => i.toFixed(1)).join(', ')
       },
     },
     {

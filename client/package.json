@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@microsoft/fetch-event-source": "2.0.1",
-    "@tanstack/react-query": "5.60.5",
+    "@tanstack/react-query": "5.61.0",
     "@uidotdev/usehooks": "2.4.1",
-    "antd": "5.22.1",
+    "antd": "5.22.2",
     "clsx": "2.1.1",
     "dayjs": "1.11.13",
     "lodash-es": "4.17.21",
