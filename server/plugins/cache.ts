@@ -1,7 +1,6 @@
 import { LRUCache } from 'lru-cache'
+import type { Ticket } from '../types'
 
-export type Task = { label: string; value: number; createdAt: Date }
-
-export const cache = new LRUCache<string, Task>({
+export const cache = new LRUCache<string, Ticket>({
   max: 500,
 })

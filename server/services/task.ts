@@ -1,7 +1,17 @@
 import { isEmpty } from 'lodash-es'
+import { nanoid } from 'nanoid'
 import { db } from '../db'
-import { ipTable } from '../db/schema'
+import { ipTable, latencyRecordTable } from '../db/schema'
+import { cache } from '../plugins/cache'
+import { worker } from '../plugins/piscina'
+import type { Ticket } from '../types'
 import { fetchTargetIps } from '../utils/address'
+
+export function createTicket(): Ticket {
+  const ticket = { label: nanoid(6), value: 0, createdAt: new Date() }
+  cache.set(ticket.label, ticket)
+  return ticket
+}
 
 export async function getAllIps() {
   const ips = await db.select({ address: ipTable.address }).from(ipTable)
@@ -19,4 +29,35 @@ export async function getAllIps() {
     return allIps
   }
   return ips
+}
+
+export async function createTask(t: Ticket) {
+  const ips = await getAllIps()
+  let index = 0
+  const records = await Promise.all(
+    ips.map(async ip => {
+      const latency: number = await worker.run(ip.address)
+      const saved = cache.get(t.label)
+      if (saved) {
+        saved.value = ++index / ips.length
+        cache.set(saved.label, saved)
+      }
+      return {
+        ...ip,
+        latency,
+      }
+    }),
+  )
+  const list = records.filter(i => i.latency > 0)
+  if (isEmpty(list)) {
+    console.error(`<${t.label}> Task failed`)
+    return
+  }
+  console.info(`<${t.label}> Task ${list.length}/${records.length}`)
+  await db.insert(latencyRecordTable).values(
+    records.map(i => ({
+      ipAddress: i.address,
+      latency: i.latency,
+    })),
+  )
 }

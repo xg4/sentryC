@@ -1,6 +1,7 @@
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
+import './plugins/cron'
 import { recordRoute } from './routes/record'
 import { taskRoute } from './routes/task'
 

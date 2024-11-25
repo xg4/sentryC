@@ -1,15 +1,10 @@
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { isEmpty } from 'lodash-es'
 import { z } from 'zod'
-import { db } from '../db'
-import { latencyRecordTable } from '../db/schema'
 import { cache } from '../plugins/cache'
-import { worker } from '../plugins/piscina'
 import { queue } from '../plugins/queue'
-import { getAllIps } from '../services/task'
-import { createTask } from '../utils/task'
+import { createTask, createTicket } from '../services/task'
 
 export const taskRoute = new Hono()
   .get('/', async c => {
@@ -55,38 +50,11 @@ export const taskRoute = new Hono()
       return c.json(current.label)
     }
 
-    const t = createTask()
+    const t = createTicket()
     cache.set(t.label, t)
 
     queue.add(async () => {
-      const ips = await getAllIps()
-      let index = 0
-      const records = await Promise.all(
-        ips.map(async ip => {
-          const latency: number = await worker.run(ip.address)
-          const saved = cache.get(t.label)
-          if (saved) {
-            saved.value = ++index / ips.length
-            cache.set(saved.label, saved)
-          }
-          return {
-            ...ip,
-            latency,
-          }
-        }),
-      )
-      const list = records.filter(i => i.latency > 0)
-      if (isEmpty(list)) {
-        console.error(`Task ${t.label}: failed`)
-        return
-      }
-      console.info(`Task ${t.label}: ${list.length}/${records.length}`)
-      await db.insert(latencyRecordTable).values(
-        records.map(i => ({
-          ipAddress: i.address,
-          latency: i.latency,
-        })),
-      )
+      await createTask(t)
     })
 
     return c.json(t.label, 201)
