@@ -14,7 +14,7 @@ export const recordRoute = new Hono()
     const records = await getRecordsByIp(query)
 
     const filtered = filterRecords(records).filter(
-      i => i.packetLossRate <= 0.5 && i.average <= 200 && !i.values.every(j => j < 0),
+      i => i.packetLossRate < 0.5 && i.average < 200 && !i.values.every(j => j < 0),
     )
     return c.json(filtered)
   })

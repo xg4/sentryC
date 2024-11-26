@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { and, desc, eq, gte, lte } from 'drizzle-orm'
-import { groupBy, isEmpty, last, map, max, min } from 'lodash-es'
+import { groupBy, isEmpty, map, max, min } from 'lodash-es'
 import { db } from '../db'
 import { latencyRecordTable } from '../db/schema'
 import { calculateAverage, calculateStd } from '../utils/math'
@@ -21,14 +21,15 @@ export function filterRecords(
     const packetLossRate = (values.length - times.length) / values.length
     const average = isEmpty(times) ? -1 : calculateAverage(times)
     const std = isEmpty(times) ? -1 : calculateStd(times, average)
-    const lastItem = last(items)
+    const [latest] = items
+
     return {
       label,
       values,
       packetLossRate,
       average,
       std,
-      createdAt: lastItem?.createdAt.toISOString(),
+      createdAt: latest?.createdAt.toISOString(),
       minValue: min(times) ?? Infinity,
       maxValue: max(times) ?? -Infinity,
     }

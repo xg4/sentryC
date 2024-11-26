@@ -38,7 +38,7 @@ export const taskRoute = new Hono()
             return stream.close()
           }
 
-          await stream.sleep(5_000)
+          await stream.sleep(2_000)
         }
       })
     },
