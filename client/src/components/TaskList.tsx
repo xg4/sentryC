@@ -50,7 +50,9 @@ export default function TaskList({ className }: { className?: string }) {
 }
 
 function TaskProgress({ label, createdAt, value }: { label: string; createdAt: string; value: number }) {
-  const { messages } = useSSE<number>('/api/task/' + label)
+  const { messages } = useSSE<number>('/api/task/' + label, {
+    enabled: value !== 1,
+  })
 
   const lastValue = useMemo(() => last(messages) ?? value, [messages, value])
 
@@ -61,7 +63,7 @@ function TaskProgress({ label, createdAt, value }: { label: string; createdAt: s
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
       queryClient.invalidateQueries({ queryKey: ['records', today] })
     }
-  }, [lastValue, value])
+  }, [lastValue, queryClient, value])
 
   const renderContent = useCallback(() => {
     const time = dayjs(createdAt)

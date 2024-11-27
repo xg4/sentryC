@@ -38,17 +38,18 @@ export function filterRecords(
   return data
 }
 
-export async function getRecordsByIp(query: { gt: string; lt: string; ip?: string }) {
-  const { gt, lt, ip } = query
-
-  const filters = [
-    lte(latencyRecordTable.createdAt, dayjs(lt).toDate()),
-    gte(latencyRecordTable.createdAt, dayjs(gt).toDate()),
-  ]
-  if (ip) filters.push(eq(latencyRecordTable.ipAddress, ip))
+export async function getRecords(params: { after?: string; before?: string; ip?: string }) {
+  const filters = []
+  if (params.before) filters.push(lte(latencyRecordTable.createdAt, dayjs(params.before).toDate()))
+  if (params.after) filters.push(gte(latencyRecordTable.createdAt, dayjs(params.after).toDate()))
+  if (params.ip) filters.push(eq(latencyRecordTable.ipAddress, params.ip))
   return db
     .select()
     .from(latencyRecordTable)
     .where(and(...filters))
     .orderBy(desc(latencyRecordTable.createdAt))
+}
+
+export async function deleteRecords(params: { before: string }) {
+  return db.delete(latencyRecordTable).where(lte(latencyRecordTable.createdAt, dayjs(params.before).toDate()))
 }

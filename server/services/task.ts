@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 import { db } from '../db'
 import { ipTable, latencyRecordTable } from '../db/schema'
 import { cache } from '../plugins/cache'
-import { worker } from '../plugins/piscina'
+import { worker } from '../plugins/worker'
 import type { Ticket } from '../types'
 import { fetchTargetIps } from '../utils/address'
 
@@ -43,7 +43,7 @@ export async function createTask(t: Ticket) {
         .where(
           and(
             eq(latencyRecordTable.ipAddress, ip.address),
-            gte(latencyRecordTable.createdAt, dayjs().subtract(1, 'day').toDate()),
+            gte(latencyRecordTable.createdAt, dayjs().subtract(1, 'day').startOf('day').toDate()),
           ),
         )
 
@@ -76,10 +76,10 @@ export async function createTask(t: Ticket) {
   )
   const list = records.filter(i => i.latency > 0)
   if (isEmpty(list)) {
-    console.error(`<${t.label}> Task failed`)
+    console.error(`Task: <${t.label}> failed`)
     return
   }
-  console.info(`<${t.label}> Task ${list.length}/${records.length}`)
+  console.info(`Task: <${t.label}> ${list.length}/${records.length}`)
   await db.insert(latencyRecordTable).values(
     records.map(i => ({
       ipAddress: i.address,

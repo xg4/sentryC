@@ -1,23 +1,31 @@
 import { EventStreamContentType, fetchEventSource, type FetchEventSourceInit } from '@microsoft/fetch-event-source'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type UseSSEOptions = {
-  onError?: (error: any) => void
+  onError?: (error: Error) => void
+  enabled?: boolean
 } & Pick<FetchEventSourceInit, 'headers' | 'openWhenHidden'>
 
 class RetriableError extends Error {}
 class FatalError extends Error {}
 
 export function useSSE<T>(url: RequestInfo, options: UseSSEOptions = {}) {
-  const { onError, openWhenHidden, headers } = options
+  const { onError, openWhenHidden, headers, enabled = true } = options
 
   const [messages, setMessages] = useState<T[]>([])
   const [isConnected, setIsConnected] = useState(false)
-  const [error, setError] = useState<any>(null)
+  const [error, setError] = useState<Error | null>(null)
+
+  const cb = useRef(onError)
+
+  useEffect(() => {
+    cb.current = onError
+  }, [onError])
 
   const eventSourceRef = useRef<AbortController | null>(null)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    if (!enabled) return
     const controller = new AbortController()
     eventSourceRef.current = controller
 
@@ -39,7 +47,7 @@ export function useSSE<T>(url: RequestInfo, options: UseSSEOptions = {}) {
       onerror: err => {
         setIsConnected(false)
         setError(err)
-        onError?.(err)
+        cb.current?.(err)
       },
       onmessage: event => {
         const data: T = JSON.parse(event.data)
@@ -51,13 +59,13 @@ export function useSSE<T>(url: RequestInfo, options: UseSSEOptions = {}) {
 
     fetchEventSource(url, fetchOptions).catch(err => {
       setError(err)
-      onError?.(err)
+      cb.current?.(err)
     })
 
     return () => {
       controller.abort()
     }
-  }, [url, openWhenHidden, headers])
+  }, [url, openWhenHidden, headers, enabled])
 
   return { messages, error, isConnected }
 }

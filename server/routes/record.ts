@@ -1,17 +1,17 @@
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { filterRecords, getRecordsByIp } from '../services/record'
+import { filterRecords, getRecords } from '../services/record'
 
 export const queryRecordSchema = z.object({
-  gt: z.string().datetime(),
-  lt: z.string().datetime(),
+  after: z.string().datetime().optional(),
+  before: z.string().datetime().optional(),
 })
 
 export const recordRoute = new Hono()
   .get('/', zValidator('query', queryRecordSchema), async c => {
     const query = c.req.valid('query')
-    const records = await getRecordsByIp(query)
+    const records = await getRecords(query)
 
     const filtered = filterRecords(records).filter(
       i => i.packetLossRate < 0.5 && i.average < 200 && !i.values.every(j => j < 0),
@@ -30,7 +30,7 @@ export const recordRoute = new Hono()
     async c => {
       const query = c.req.valid('query')
       const params = c.req.valid('param')
-      const records = await getRecordsByIp({ ...query, ...params })
+      const records = await getRecords({ ...query, ...params })
       return c.json(records)
     },
   )
