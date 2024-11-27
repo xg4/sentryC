@@ -1,5 +1,4 @@
-import dayjs from 'dayjs'
-import { and, eq, gte } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { compact, isEmpty } from 'lodash-es'
 import { nanoid } from 'nanoid'
 import { db } from '../db'
@@ -33,39 +32,34 @@ export async function getAllIps() {
   return ips
 }
 
-export async function createTask(t: Ticket) {
-  const ips = await getAllIps()
-  const _filterIps = await Promise.all(
+async function filterValidIps(ips: { address: string }[]) {
+  const _ips = await Promise.all(
     ips.map(async ip => {
       const itemRecords = await db
         .select({ latency: latencyRecordTable.latency })
         .from(latencyRecordTable)
-        .where(
-          and(
-            eq(latencyRecordTable.ipAddress, ip.address),
-            gte(latencyRecordTable.createdAt, dayjs().subtract(1, 'day').startOf('day').toDate()),
-          ),
-        )
+        .where(and(eq(latencyRecordTable.ipAddress, ip.address)))
+        .orderBy(desc(latencyRecordTable.createdAt))
 
-      if (itemRecords.length >= 5) {
-        const packetLossRate = (itemRecords.length - itemRecords.filter(i => i.latency > 0).length) / itemRecords.length
-        if (packetLossRate >= 0.5) {
-          return null
-        }
+      if (itemRecords.length >= 5 && itemRecords.slice(5).some(i => i.latency < 0)) {
+        return
       }
       return ip
     }),
   )
+  return compact(_ips)
+}
 
-  const filterIps = compact(_filterIps)
+export async function createTask(t: Ticket) {
+  const ips = await getAllIps().then(filterValidIps)
 
   let index = 0
   const records = await Promise.all(
-    filterIps.map(async ip => {
+    ips.map(async ip => {
       const latency: number = await worker.run(ip.address)
       const saved = cache.get(t.label)
       if (saved) {
-        saved.value = ++index / filterIps.length
+        saved.value = ++index / ips.length
         cache.set(saved.label, saved)
       }
       return {
