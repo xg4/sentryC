@@ -1,4 +1,5 @@
-import { and, desc, eq } from 'drizzle-orm'
+import dayjs from 'dayjs'
+import { and, desc, eq, lte } from 'drizzle-orm'
 import { compact, isEmpty } from 'lodash-es'
 import { nanoid } from 'nanoid'
 import { db } from '../db'
@@ -38,10 +39,15 @@ async function filterValidIps(ips: { address: string }[]) {
       const itemRecords = await db
         .select({ latency: latencyRecordTable.latency })
         .from(latencyRecordTable)
-        .where(and(eq(latencyRecordTable.ipAddress, ip.address)))
+        .where(
+          and(
+            eq(latencyRecordTable.ipAddress, ip.address),
+            lte(latencyRecordTable.createdAt, dayjs().subtract(1, 'day').toDate()),
+          ),
+        )
         .orderBy(desc(latencyRecordTable.createdAt))
 
-      if (itemRecords.length >= 5 && itemRecords.slice(5).some(i => i.latency < 0)) {
+      if (itemRecords.length >= 5 && itemRecords.slice(0, 2).every(i => i.latency < 0)) {
         return
       }
       return ip
