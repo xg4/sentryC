@@ -1,5 +1,5 @@
 {
-  "id": "97778e29-2908-4361-8ba9-bb0799b99d05",
+  "id": "9cdebeaa-e25c-4326-885c-7cca02e8e0eb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -68,21 +68,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "ip_addresses_created_at_index": {
-          "name": "ip_addresses_created_at_index",
-          "columns": [
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {},
@@ -122,13 +107,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "status": {
-          "name": "status",
-          "type": "ping_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -145,27 +123,6 @@
         }
       },
       "indexes": {
-        "ping_results_ip_address_status_index": {
-          "name": "ping_results_ip_address_status_index",
-          "columns": [
-            {
-              "expression": "ip_address",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "ping_results_ip_address_created_at_index": {
           "name": "ping_results_ip_address_created_at_index",
           "columns": [
@@ -225,16 +182,7 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {
-    "public.ping_status": {
-      "name": "ping_status",
-      "schema": "public",
-      "values": [
-        "success",
-        "failure"
-      ]
-    }
-  },
+  "enums": {},
   "schemas": {},
   "sequences": {},
   "roles": {},
