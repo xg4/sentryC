@@ -1,39 +1,34 @@
-import { relations, sql } from 'drizzle-orm'
-import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
-import { generateCuid2 } from '../utils/id'
+import { index, pgTable, real, serial, text, timestamp } from 'drizzle-orm/pg-core'
 
-export const ipTable = sqliteTable('ips', {
-  address: text().primaryKey(),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(strftime('%s', 'now'))`),
-})
-
-export const latencyRecordTable = sqliteTable(
-  'latency_records',
+export const ipAddresses = pgTable(
+  'ip_addresses',
   {
-    id: text()
-      .primaryKey()
-      .$default(() => generateCuid2()),
-    latency: real().notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    id: serial().primaryKey(),
+    ip: text().notNull().unique(),
+    cidr: text(),
+    description: text(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
       .notNull()
-      .default(sql`(strftime('%s', 'now'))`),
-    ipAddress: text('ip_address').notNull(),
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
-  table => ({
-    ipIndex: uniqueIndex('ip_index').on(table.ipAddress, table.createdAt),
-    createdAtIndex: index('created_at_index').on(table.createdAt),
-  }),
+  t => [index().on(t.ip, t.createdAt)],
 )
 
-export const ipsRelations = relations(ipTable, ({ many }) => ({
-  latencyRecords: many(latencyRecordTable),
-}))
-
-export const latencyRecordsRelations = relations(latencyRecordTable, ({ one }) => ({
-  ip: one(ipTable, {
-    fields: [latencyRecordTable.ipAddress],
-    references: [ipTable.address],
-  }),
-}))
+export const pingResults = pgTable(
+  'ping_results',
+  {
+    id: serial().primaryKey(),
+    ipAddress: text('ip_address')
+      .notNull()
+      .references(() => ipAddresses.ip),
+    latency: real(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
+  },
+  t => [index().on(t.ipAddress, t.createdAt), index().on(t.createdAt)],
+)

@@ -4,6 +4,7 @@ const ServeEnv = z.object({
   PORT: z.coerce.number().int().default(8970),
   HOSTNAME: z.string().default('localhost'),
   WORKER_CONCURRENCY: z.coerce.number().int().default(10),
+  DATABASE_URL: z.string(),
 })
 
 export const ProcessEnv = ServeEnv.parse(process.env)

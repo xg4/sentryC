@@ -1,11 +1,18 @@
 import { serve } from '@hono/node-server'
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import app from './app'
+import { db } from './db'
 import { ProcessEnv } from './env'
+import { initSchedules } from './utils/schedules'
+
+await migrate(db, { migrationsFolder: './drizzle' })
+
+await initSchedules()
 
 serve({
-  fetch: app.fetch,
   port: ProcessEnv.PORT,
   hostname: ProcessEnv.HOSTNAME,
+  fetch: app.fetch,
 })
 
-console.log(`\n\n🚀 ~ Server is running on http://${ProcessEnv.HOSTNAME}:${ProcessEnv.PORT}`)
+console.log('🚀 ~ serve:', `http://${ProcessEnv.HOSTNAME}:${ProcessEnv.PORT}`)

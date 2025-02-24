@@ -1,16 +1,13 @@
-import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
-import './plugins/cron'
-import { recordRoute } from './routes/record'
-import { taskRoute } from './routes/task'
+import { routes } from './routes'
 
 const app = new Hono()
 
-const apiRoutes = app.basePath('/api').route('/task', taskRoute).route('/record', recordRoute)
+app.route('/', routes)
 
-app.use('*', serveStatic({ root: './client/dist' }))
-app.use('*', serveStatic({ path: './client/dist/index.html' }))
+app.onError((e, c) => {
+  console.error(e)
+  return c.json({ error: e.message }, 500)
+})
 
 export default app
-
-export type ApiRoutes = typeof apiRoutes
