@@ -2,6 +2,7 @@ import { zValidator } from '@hono/zod-validator'
 import { createInsertSchema } from 'drizzle-zod'
 import { Hono } from 'hono'
 import { chunk, isNumber } from 'lodash-es'
+import UAParser from 'my-ua-parser'
 import { table } from 'table'
 import { z } from 'zod'
 import { db } from '../db'
@@ -45,11 +46,16 @@ export const ipRouter = new Hono()
     ),
     async c => {
       const { limit } = c.req.valid('query')
+      const userAgent = c.req.header('user-agent')
+      const parser = new UAParser(userAgent)
+      const isMobile = parser.getDevice().type === 'mobile'
+
       const results = await ipService.calculateIpRank(limit)
+      const colLen = isMobile ? 4 : results.fields.length
       const rank = [
-        results.fields.map(f => f.name),
+        results.fields.slice(0, colLen).map(f => f.name),
         ...results.rows.slice(0, limit).map(r =>
-          results.fields.map(f => {
+          results.fields.slice(0, colLen).map(f => {
             const v = r[f.name]
             if (isNumber(v)) {
               return v.toFixed(2)

@@ -38,40 +38,45 @@ export async function calculateIpRank(_limit: number = 10) {
         -- 权重可以根据需要调整
         (
           -- 平均延迟 (延迟越低越好，以50ms为基准)
-          COALESCE(ps.avg_latency / 50, 4) * 40 +
+          COALESCE(ps.avg_latency / 300, 1) * 30 +
+          COALESCE(ps.p95_latency / 300, 1) * 30 +
           -- 延迟稳定性 (标准差越低越好，以10ms为基准)
-          COALESCE(ps.stddev_latency / 10, 4) * 20 +
+          COALESCE(ps.stddev_latency / 50, 1) * 10 +
           -- 丢包率 (丢包率越低越好)
-          COALESCE((ps.packet_loss_count::float / ps.total_requests) * 100, 5) * 30 +
+          COALESCE((ps.packet_loss_count::float / ps.total_requests) * 100, 5) * 20 +
           -- 请求数量 (请求数量越多数据越可靠，用请求倒数作为惩罚因子，以24为基准)
-          LEAST(24.0 / ps.total_requests, 1) * 10
-        ) AS composite_score
+          LEAST(12.0 / ps.total_requests, 1) * 10
+        ) AS score
       FROM
         ping_stats ps
       WHERE
         -- 过滤总请求数小于12的IP
         ps.total_requests >= 12
         AND
+        ps.stddev_latency <= 50
+        AND
         ps.p95_latency <= 300
+        AND
+        ps.avg_latency <= 300
+        AND
+        -- 过滤丢包率大于5%的IP
+        (ps.packet_loss_count::float / ps.total_requests) * 100 <= 5
     )
     SELECT
       ss."ipAddress",
-      ia.cidr,
+      ss.score,
+      ss.p95_latency AS "p95",
+      ss.total_requests AS "total",
       ss.avg_latency,
       ss.stddev_latency,
-      ss.p95_latency,
-      ss.total_requests,
       ss.packet_loss_percentage,
-      ss.composite_score
+      ia.cidr
     FROM
       scored_stats ss
     JOIN
       ip_addresses ia ON ss."ipAddress" = ia.ip
-    WHERE
-      -- 过滤丢包率大于5%的IP
-      ss.packet_loss_percentage <= 5
     ORDER BY
-      ss.composite_score ASC
+      ss.score ASC
   `
 
   const results = await db.execute(query)
