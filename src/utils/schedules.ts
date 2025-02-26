@@ -15,6 +15,17 @@ export const job = new CronJob(
   'Asia/Shanghai',
 )
 
+export const cleanupJob = new CronJob(
+  '0 12 * * *',
+  async function () {
+    await ipService.deleteOldPingResults()
+  },
+  null,
+  false,
+  'Asia/Shanghai',
+)
+
 export async function initSchedules() {
-  await job.start()
+  job.start()
+  cleanupJob.start()
 }

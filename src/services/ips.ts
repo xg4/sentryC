@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
-import { and, desc, eq, gte } from 'drizzle-orm'
-import { compact, groupBy, max, mean, min, orderBy } from 'lodash-es'
+import { and, desc, eq, gte, lt, sql } from 'drizzle-orm'
+import { compact } from 'lodash-es'
 import { db } from '../db'
 import { ipAddresses, pingResults } from '../db/schema'
 import { piscina } from '../utils/piscina'
@@ -9,59 +9,74 @@ export const getIps = async () => {
   return db.select().from(ipAddresses)
 }
 
-export async function calculateIpRank(limit: number = 10) {
-  const oneDayAgo = dayjs().subtract(1, 'days').toDate()
+export async function calculateIpRank(_limit: number = 10) {
+  const query = sql`
+    WITH ping_stats AS (
+      SELECT
+        pr.ip_address AS "ipAddress",
+        AVG(pr.latency) AS avg_latency,
+        STDDEV(pr.latency) AS stddev_latency,
+        COUNT(*) AS total_requests,
+        SUM(CASE WHEN pr.latency IS NULL THEN 1 ELSE 0 END) AS packet_loss_count,
+        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY pr.latency) AS p95_latency
+      FROM
+        ping_results pr
+      WHERE
+        pr.created_at >= NOW() - INTERVAL '1 day'
+      GROUP BY
+        pr.ip_address
+    ),
+    scored_stats AS (
+      SELECT
+        ps."ipAddress",
+        ps.avg_latency,
+        ps.stddev_latency,
+        ps.p95_latency,
+        ps.total_requests,
+        (ps.packet_loss_count::float / ps.total_requests) * 100 AS packet_loss_percentage,
+        -- 综合得分计算 (得分越低越好)
+        -- 权重可以根据需要调整
+        (
+          -- 平均延迟 (延迟越低越好，以50ms为基准)
+          COALESCE(ps.avg_latency / 50, 4) * 40 +
+          -- 延迟稳定性 (标准差越低越好，以10ms为基准)
+          COALESCE(ps.stddev_latency / 10, 4) * 20 +
+          -- 丢包率 (丢包率越低越好)
+          COALESCE((ps.packet_loss_count::float / ps.total_requests) * 100, 5) * 30 +
+          -- 请求数量 (请求数量越多数据越可靠，用请求倒数作为惩罚因子，以24为基准)
+          LEAST(24.0 / ps.total_requests, 1) * 10
+        ) AS composite_score
+      FROM
+        ping_stats ps
+      WHERE
+        -- 过滤总请求数小于12的IP
+        ps.total_requests >= 12
+        AND
+        ps.p95_latency <= 300
+    )
+    SELECT
+      ss."ipAddress",
+      ia.cidr,
+      ss.avg_latency,
+      ss.stddev_latency,
+      ss.p95_latency,
+      ss.total_requests,
+      ss.packet_loss_percentage,
+      ss.composite_score
+    FROM
+      scored_stats ss
+    JOIN
+      ip_addresses ia ON ss."ipAddress" = ia.ip
+    WHERE
+      -- 过滤丢包率大于5%的IP
+      ss.packet_loss_percentage <= 5
+    ORDER BY
+      ss.composite_score ASC
+  `
 
-  // 查询最近一天的 ping 结果数据
-  const results = await db
-    .select({
-      ipAddress: pingResults.ipAddress,
-      latency: pingResults.latency,
-    })
-    .from(pingResults)
-    .where(gte(pingResults.createdAt, oneDayAgo))
+  const results = await db.execute(query)
 
-  const ipStats = groupBy(results, 'ipAddress')
-
-  const rank = Object.entries(ipStats).map(([ipAddress, stats]) => {
-    const record = calculateItemRecord(stats.map(i => i.latency))
-    return {
-      ...record,
-      ipAddress,
-      count: stats.length,
-    }
-  })
-
-  return orderBy(rank, ['average', 'lossRate', 'stddev'], ['asc', 'asc', 'asc']).slice(0, limit)
-}
-
-function calculateItemRecord(values: (number | null)[]) {
-  const validValues = compact(values)
-
-  const average = mean(validValues)
-  const lossRate = 1 - validValues.length / values.length
-  const maxValue = max(validValues)
-  const minValue = min(validValues)
-  const stddev = calculateStandardDeviation(validValues)
-
-  return {
-    average,
-    lossRate,
-    maxValue,
-    minValue,
-    stddev,
-  }
-}
-
-// 计算标准差的辅助函数
-function calculateStandardDeviation(data: number[]): number {
-  if (data.length <= 1) {
-    return 0
-  }
-  const mean = data.reduce((sum, value) => sum + value, 0) / data.length
-  const squaredDifferences = data.map(value => Math.pow(value - mean, 2))
-  const variance = squaredDifferences.reduce((sum, value) => sum + value, 0) / (data.length - 1)
-  return Math.sqrt(variance)
+  return results
 }
 
 async function checkIp(ipAddress: string) {
@@ -75,6 +90,22 @@ async function checkIp(ipAddress: string) {
     return null
   }
   return { ipAddress }
+}
+
+export async function deleteOldPingResults() {
+  try {
+    // 计算一周前的日期和时间
+    const oneWeekAgo = dayjs().subtract(7, 'days').toDate()
+
+    // 构建删除查询
+    const result = await db.delete(pingResults).where(lt(pingResults.createdAt, oneWeekAgo))
+
+    console.log(`Deleted ${result.rowCount} rows.`)
+    return result.rowCount
+  } catch (error) {
+    console.error('Error deleting old ping results:', error)
+    throw error // 重新抛出错误，以便调用者处理
+  }
 }
 
 export async function createTask(requestId: string) {

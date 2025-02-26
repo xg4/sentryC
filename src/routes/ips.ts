@@ -45,10 +45,19 @@ export const ipRouter = new Hono()
     ),
     async c => {
       const { limit } = c.req.valid('query')
-      const rank = await ipService.calculateIpRank(limit)
-      const results = rank.map(i =>
-        [i.ipAddress, i.average, i.lossRate, i.stddev, i.count].map(v => (isNumber(v) ? v.toFixed(2) : v)),
-      )
-      return c.text(table([['ip', 'avg', 'PLR', 'Stddev', 'count']].concat(results)))
+      const results = await ipService.calculateIpRank(limit)
+      const rank = [
+        results.fields.map(f => f.name),
+        ...results.rows.slice(0, limit).map(r =>
+          results.fields.map(f => {
+            const v = r[f.name]
+            if (isNumber(v)) {
+              return v.toFixed(2)
+            }
+            return v
+          }),
+        ),
+      ]
+      return c.text(table(rank))
     },
   )
