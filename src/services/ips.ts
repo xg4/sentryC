@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { and, desc, eq, gte, lt, sql } from 'drizzle-orm'
 import { compact } from 'lodash-es'
+import type { Logger } from 'pino'
 import { db } from '../db'
 import { ipAddresses, pingResults } from '../db/schema'
 import { piscina } from '../utils/piscina'
@@ -97,7 +98,7 @@ async function checkIp(ipAddress: string) {
   return { ipAddress }
 }
 
-export async function deleteOldPingResults() {
+export async function deleteOldPingResults(logger: Logger) {
   try {
     // 计算一周前的日期和时间
     const oneWeekAgo = dayjs().subtract(7, 'days').toDate()
@@ -105,15 +106,15 @@ export async function deleteOldPingResults() {
     // 构建删除查询
     const result = await db.delete(pingResults).where(lt(pingResults.createdAt, oneWeekAgo))
 
-    console.log(`Deleted ${result.rowCount} rows.`)
+    logger.info(`Deleted ${result.rowCount} rows.`)
     return result.rowCount
   } catch (error) {
-    console.error('Error deleting old ping results:', error)
+    logger.error('Error deleting old ping results:', error)
     throw error // 重新抛出错误，以便调用者处理
   }
 }
 
-export async function createTask(requestId: string) {
+export async function createTask(logger: Logger) {
   const ips = await db
     .select({
       ipAddress: ipAddresses.ip,
@@ -123,7 +124,7 @@ export async function createTask(requestId: string) {
   const validIps = await Promise.all(ips.map(i => checkIp(i.ipAddress))).then(compact)
 
   if (!validIps.length) {
-    console.log(`Task: <${requestId}> empty`)
+    logger.info('有效的 ips 为空')
     return
   }
 
@@ -138,10 +139,10 @@ export async function createTask(requestId: string) {
   )
   const list = results.filter(i => i.latency && i.latency > 0)
   if (!list.length) {
-    console.error(`Task: <${requestId}> failed`)
+    logger.info(`任务结束 null`)
     return
   }
-  console.info(`Task: <${requestId}> ${list.length}/${results.length}`)
+  logger.info(`任务结束 ${list.length}/${results.length}`)
 
   await db.insert(pingResults).values(results)
 }
