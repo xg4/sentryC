@@ -8,6 +8,10 @@ const app = new Hono()
 app.use(requestId())
 app.use(pinoLogger)
 
+app.get('/', c => {
+  return c.redirect('/rank')
+})
+
 app.route('/', routes)
 
 app.onError((e, c) => {

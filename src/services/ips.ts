@@ -7,7 +7,7 @@ import { ipAddresses, pingResults } from '../db/schema'
 import { piscina } from '../utils/piscina'
 
 export const getIps = async () => {
-  return db.select().from(ipAddresses)
+  return db.query.ipAddresses.findMany()
 }
 
 export async function calculateIpRank(_limit: number = 10) {
@@ -65,13 +65,13 @@ export async function calculateIpRank(_limit: number = 10) {
     )
     SELECT
       ss."ipAddress",
-      ss.score,
       ss.p95_latency AS "p95",
+      ss.stddev_latency AS "stddev",
       ss.total_requests AS "total",
-      ss.avg_latency,
-      ss.stddev_latency,
-      ss.packet_loss_percentage,
-      ia.cidr
+      ss.packet_loss_percentage AS "PLR",
+      ss.avg_latency AS "avg",
+      ia.cidr,
+      ss.score
     FROM
       scored_stats ss
     JOIN
