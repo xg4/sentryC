@@ -12,13 +12,13 @@ export const getAllIpAddresses = async () => {
 
 export async function calculateIpPerformanceRanking(limit: number = 10) {
   const query = sql`
-    WITH ping_stats AS (
+    WITH network_metrics AS (
       SELECT
         pr.ip_address AS "ipAddress",
         AVG(pr.latency) AS avg_latency,
         STDDEV(pr.latency) AS stddev_latency,
         COUNT(*) AS total_requests,
-        SUM(CASE WHEN pr.latency IS NULL THEN 1 ELSE 0 END) AS packet_loss_count,
+        (SUM(CASE WHEN pr.latency IS NULL THEN 1 ELSE 0 END)::float / COUNT(*)) * 100 AS packet_loss,
         PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY pr.latency) AS p95_latency
       FROM
         ping_results pr
@@ -27,57 +27,57 @@ export async function calculateIpPerformanceRanking(limit: number = 10) {
       GROUP BY
         pr.ip_address
     ),
-    scored_stats AS (
+    network_performance AS (
       SELECT
-        ps."ipAddress",
-        ps.avg_latency,
-        ps.stddev_latency,
-        ps.p95_latency,
-        ps.total_requests,
-        (ps.packet_loss_count::float / ps.total_requests) * 100 AS packet_loss_percentage,
-        -- 综合得分计算 (得分越低越好)
-        -- 权重可以根据需要调整
+        nm."ipAddress",
+        nm.avg_latency,
+        nm.stddev_latency,
+        nm.p95_latency,
+        nm.total_requests,
+        nm.packet_loss,
+        -- 性能评分计算（分值越低越好）
         (
-          -- 平均延迟 (延迟越低越好，以50ms为基准)
-          COALESCE(ps.avg_latency / 300, 1) * 30 +
-          COALESCE(ps.p95_latency / 300, 1) * 30 +
-          -- 延迟稳定性 (标准差越低越好，以10ms为基准)
-          COALESCE(ps.stddev_latency / 50, 1) * 10 +
-          -- 丢包率 (丢包率越低越好)
-          COALESCE((ps.packet_loss_count::float / ps.total_requests) * 100, 5) * 20 +
-          -- 请求数量 (请求数量越多数据越可靠，用请求倒数作为惩罚因子，以24为基准)
-          LEAST(12.0 / ps.total_requests, 1) * 10
-        ) AS score
+          -- 基础延迟评分 (50%)
+          -- 平均延迟权重 20%
+          COALESCE(nm.avg_latency / 300, 1) * 20 +
+          -- P95延迟权重 30%
+          COALESCE(nm.p95_latency / 300, 1) * 30 +
+          
+          -- 稳定性评分 (40%)
+          -- 延迟标准差权重 15%
+          COALESCE(nm.stddev_latency / 50, 1) * 20 +
+          -- 丢包率权重 15%
+          COALESCE(nm.packet_loss, 5) * 20 +
+          
+          -- 数据可靠性评分 (10%)
+          -- 样本数量评分（样本越多越可靠）
+          LEAST(12.0 / nm.total_requests, 1) * 10
+        ) AS quality_score
       FROM
-        ping_stats ps
+        network_metrics nm
       WHERE
-        -- 过滤总请求数小于12的IP
-        ps.total_requests >= 12
-        AND
-        ps.stddev_latency <= 50
-        AND
-        ps.p95_latency <= 300
-        AND
-        ps.avg_latency <= 300
-        AND
-        -- 过滤丢包率大于5%的IP
-        (ps.packet_loss_count::float / ps.total_requests) * 100 <= 5
+        -- 基础质量要求
+        nm.total_requests >= 12
+        AND nm.stddev_latency <= 50
+        AND nm.p95_latency <= 300
+        AND nm.avg_latency <= 300
+        AND nm.packet_loss <= 5
     )
     SELECT
-      ss."ipAddress",
-      ss.p95_latency AS "p95",
-      ss.stddev_latency AS "stddev",
-      ss.total_requests AS "total",
-      ss.packet_loss_percentage AS "PLR",
-      ss.avg_latency AS "avg",
+      np."ipAddress",
+      np.p95_latency AS "p95",
+      np.stddev_latency AS "stddev",
+      np.total_requests AS "total",
+      np.packet_loss AS "PLR",
+      np.avg_latency AS "avg",
       ia.cidr,
-      ss.score
+      np.quality_score AS score
     FROM
-      scored_stats ss
+      network_performance np
     JOIN
-      ip_addresses ia ON ss."ipAddress" = ia.ip
+      ip_addresses ia ON np."ipAddress" = ia.ip
     ORDER BY
-      ss.score ASC
+      np.quality_score ASC
     LIMIT ${limit}
   `
 
@@ -130,7 +130,7 @@ export async function createPingTask(logger: Logger) {
   }
 
   const results = await Promise.all(
-    validIps.map(async i => {
+    validIpAddresses.map(async i => {
       const latency: number | null = await piscina.run(i.ipAddress)
       return {
         ...i,
