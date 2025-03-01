@@ -6,11 +6,11 @@ import { db } from '../db'
 import { ipAddresses, pingResults } from '../db/schema'
 import { piscina } from '../utils/piscina'
 
-export const getIps = async () => {
+export const getAllIpAddresses = async () => {
   return db.query.ipAddresses.findMany()
 }
 
-export async function calculateIpRank(_limit: number = 10) {
+export async function calculateIpPerformanceRanking(limit: number = 10) {
   const query = sql`
     WITH ping_stats AS (
       SELECT
@@ -78,6 +78,7 @@ export async function calculateIpRank(_limit: number = 10) {
       ip_addresses ia ON ss."ipAddress" = ia.ip
     ORDER BY
       ss.score ASC
+    LIMIT ${limit}
   `
 
   const results = await db.execute(query)
@@ -85,7 +86,7 @@ export async function calculateIpRank(_limit: number = 10) {
   return results
 }
 
-async function checkIp(ipAddress: string) {
+async function validateIpLatency(ipAddress: string) {
   const itemRecords = await db
     .select({ latency: pingResults.latency })
     .from(pingResults)
@@ -114,17 +115,17 @@ export async function deleteOldPingResults(logger: Logger) {
   }
 }
 
-export async function createTask(logger: Logger) {
-  const ips = await db
+export async function createPingTask(logger: Logger) {
+  const ipList = await db
     .select({
       ipAddress: ipAddresses.ip,
     })
     .from(ipAddresses)
 
-  const validIps = await Promise.all(ips.map(i => checkIp(i.ipAddress))).then(compact)
+  const validIpAddresses = await Promise.all(ipList.map(i => validateIpLatency(i.ipAddress))).then(compact)
 
-  if (!validIps.length) {
-    logger.info('有效的 ips 为空')
+  if (!validIpAddresses.length) {
+    logger.info('没有可用的 IP 地址')
     return
   }
 

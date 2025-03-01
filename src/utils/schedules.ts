@@ -3,37 +3,37 @@ import { nanoid } from 'nanoid'
 import { logger } from '../middlewares/logger'
 import { ipService } from '../services'
 
-export const job = new CronJob(
+export const pingMonitorJob = new CronJob(
   '0 * * * *',
   async function () {
-    const ticket = nanoid()
+    const taskId = nanoid()
 
-    const child = logger.child({
-      type: 'add',
-      ticket,
+    const taskLogger = logger.child({
+      taskType: 'ping-monitor',
+      taskId,
     })
 
-    child.info('任务开始')
+    taskLogger.info('开始执行 IP 监控任务')
 
-    await ipService.createTask(child)
+    await ipService.createPingTask(taskLogger)
   },
   null,
   false,
   'Asia/Shanghai',
 )
 
-export const cleanupJob = new CronJob(
-  '0 12 * * *',
+export const dataCleanupJob = new CronJob(
+  '0 3 * * *',
   async function () {
-    const ticket = nanoid()
+    const taskId = nanoid()
 
-    const child = logger.child({
-      type: 'delete',
-      ticket,
+    const taskLogger = logger.child({
+      taskType: 'data-cleanup',
+      taskId,
     })
 
-    child.info('任务开始')
-    await ipService.deleteOldPingResults(child)
+    taskLogger.info('开始执行数据清理任务')
+    await ipService.deleteOldPingResults(taskLogger)
   },
   null,
   false,
@@ -41,6 +41,6 @@ export const cleanupJob = new CronJob(
 )
 
 export async function initSchedules() {
-  job.start()
-  cleanupJob.start()
+  pingMonitorJob.start()
+  dataCleanupJob.start()
 }

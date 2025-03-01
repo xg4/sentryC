@@ -12,8 +12,8 @@ import { getIpsByCidr } from '../utils/address'
 
 export const ipRouter = new Hono()
   .get('/ips', async c => {
-    const items = await ipService.getIps()
-    return c.json(items)
+    const ipAddresses = await ipService.getAllIpAddresses()
+    return c.json(ipAddresses)
   })
   .post('/ips', zValidator('json', z.string().array()), async c => {
     const list = c.req.valid('json')
@@ -50,7 +50,7 @@ export const ipRouter = new Hono()
       const parser = new UAParser(userAgent)
       const isMobile = parser.getDevice().type === 'mobile'
 
-      const results = await ipService.calculateIpRank(limit)
+      const results = await ipService.calculateIpPerformanceRanking(limit)
       const colLen = isMobile ? 4 : results.fields.length
       const rank = [
         results.fields.slice(0, colLen).map(f => f.name),
